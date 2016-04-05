@@ -1,12 +1,5 @@
-import sys, getopt, re
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.units import inch
-from reportlab.pdfgen import canvas
-from reportlab.lib.colors import gray
-
-def mbi(x):
-	"""Multiply by one inch"""
-	return x * inch
+import sys, getopt, re, os
+import genpdf
 
 def getArguments(argv):
 	"""Get command line arguments"""
@@ -16,12 +9,12 @@ def getArguments(argv):
 	try:
 		opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
 	except getopt.GetoptError:
-		print "test.py -i <inputfile> -o <outputfile>"
+		print("test.py -i <inputfile> -o <outputfile>")
 		sys.exit(2)
 
 	for opt, arg in opts:
 		if opt == "-h":
-			print "test.py -i <inputfile> -o <outputfile>"
+			print("test.py -i <inputfile> -o <outputfile>")
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			inputfile = arg
@@ -63,7 +56,7 @@ def generatePdf(recipe, outfile):
 	#Place the units
 	textobject = c.beginText()
 	textobject.setFont("Helvetica", 9)
-	textobject.setTextOrigin(mbi(1.25), mbi(2.3))
+	textobject.setTextOrigin(mbi(1.75), mbi(2.3))
 	for ingredient in recipe['ingredients']:
 		if ingredient != ' ':
 			textobject.textLine(ingredient['m-unit'])
@@ -74,7 +67,7 @@ def generatePdf(recipe, outfile):
 	#Place the directions
 	textobject = c.beginText()
 	textobject.setFont("Helvetica", 9)
-	textobject.setTextOrigin(mbi(1.75), mbi(2.3))
+	textobject.setTextOrigin(mbi(2.75), mbi(2.3))
 	for ingredient in recipe['directions']:
 		if ingredient != ' ':
 			textobject.textLine(ingredient)
@@ -97,9 +90,9 @@ def readInFile(filename):
 def parseIngredient(ingredient):
 	"""Takes in a ingredient/unit string, returns them as a list"""
 	ret = {}
-	tre = re.compile(r"([0-9, A-Za-z]*[0-9A-Za-z]) *\(") #match the thing
-	ure = re.compile(r"\[([0-9 A-Za-z]*)\]") #match the customary (U.S.) unit
-	mre = re.compile(r"\(([0-9 A-Za-z]*)\)")   #match the metric unit
+	tre = re.compile(r"([0-9, A-Za-z]*[0-9A-Za-z]) *[\(\[]") #match the thing
+	ure = re.compile(r"\[([0-9 ./A-Za-z]*)\]") #match the customary (U.S.) unit
+	mre = re.compile(r"\(([0-9 ./A-Za-z]*)\)")   #match the metric unit
 	
 	# add the thing to ret
 	tMatch = tre.search(ingredient)
@@ -118,9 +111,10 @@ def parseIngredient(ingredient):
 		
 	return ret
 	
-def parseRecipe(recipe, recipeParts):
+def parseRecipe(recipeText):
 	"""Turns a recipe list into a recipe dictionary including title, ingredients, directions"""
-	for i, line in enumerate(recipe):
+	recipe = {}
+	for i, line in enumerate(recipeText):
 		if line == '# Title':
 			titleLine = i + 1 
 		elif line == '# Ingredients':
@@ -130,27 +124,29 @@ def parseRecipe(recipe, recipeParts):
 	
 	# Parse ingredients
 	ingredients = []
-	for i, line in enumerate(recipe[ingredientsStart:]):
+	for i, line in enumerate(recipeText[ingredientsStart:]):
 		if line == '##':
 			break
 		if line != '-':
-			x = parseIngredient(recipe[i + ingredientsStart])
+			x = parseIngredient(recipeText[i + ingredientsStart])
 			ingredients.append(x)
 		else:
 			ingredients.append(' ')
 
 	# Parse directions
 	directions = []
-	for i, line in enumerate(recipe[directionsLine:]):
+	for i, line in enumerate(recipeText[directionsLine:]):
 		if line == '##':
 			break
 		if line == '' or line == '-':
 			continue
-		directions.append(recipe[i+directionsLine]) 
+		directions.append(recipeText[i+directionsLine]) 
 	
-	recipeParts['title'] = recipe[titleLine]
-	recipeParts['ingredients'] = ingredients
-	recipeParts['directions'] = directions
+	recipe['title'] = recipeText[titleLine]
+	recipe['ingredients'] = ingredients
+	recipe['directions'] = directions
+
+	return recipe
 
 if __name__ == "__main__":
 	
@@ -160,9 +156,9 @@ if __name__ == "__main__":
 	files = getArguments(sys.argv[1:])
 	
 	# recipe will be a list containing the contents of the input file
-	recipe = readInFile(files["in"])
+	recipeText = readInFile(files["in"])
+	recipe = parseRecipe(recipeText)
 	
-	recipeParts = {}
-	parseRecipe(recipe, recipeParts)
+	genpdf.genPdf(recipe, files["out"])
+	os.system("open " + files["out"])
 	
-	generatePdf(recipeParts, files["out"])
