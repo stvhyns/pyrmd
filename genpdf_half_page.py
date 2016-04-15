@@ -3,6 +3,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 def mbi(x):
 	"""Multiply by one inch"""
@@ -12,38 +14,59 @@ def createFrames():
 	debug = 0
 	frames = []
 	#Recipe 1
-	frames.append(Frame(inch*0.25, inch*10.5, inch*8, inch*.5, showBoundary=debug))
-	frames.append(Frame(inch*0.25, inch*5.5, inch*2.5, inch*5, showBoundary=debug))
-	frames.append(Frame(inch*2.75, inch*5.5, inch*1.5, inch*5, showBoundary=debug))
-	frames.append(Frame(inch*4.25, inch*5.5, inch*4, inch*5, showBoundary=debug))
+	frames.append(Frame(mbi(0.5), mbi(5.5), mbi(7.5), mbi(5), showBoundary=1))
+	frames.append(Frame(mbi(0.6), mbi(9.75), mbi(7.4), mbi(0.75), showBoundary=debug))
+	frames.append(Frame(mbi(0.6), mbi(5.5), mbi(2), mbi(4.25), showBoundary=debug))
+	frames.append(Frame(mbi(2.6), mbi(5.5), mbi(1.65), mbi(4.25), showBoundary=debug))
+	frames.append(Frame(mbi(4.25), mbi(5.75), mbi(3.65), mbi(4), showBoundary=debug))
+	frames.append(Frame(mbi(4.25), mbi(5.5), mbi(3.65), mbi(0.25), bottomPadding=0, topPadding=0, showBoundary=debug))
 	
 	#Recipe 2
-	frames.append(Frame(inch*0.25, inch*5, inch*8, inch*.5, showBoundary=debug))
-	frames.append(Frame(inch*0.25, inch*0, inch*2.5, inch*5, showBoundary=debug))
-	frames.append(Frame(inch*2.75, inch*0, inch*1.5, inch*5, showBoundary=debug))
-	frames.append(Frame(inch*4.25, inch*0, inch*4, inch*5, showBoundary=debug))
-	
-	#Recipe 3
-	#frames.append(Frame(inch*1.75, inch*3.5, inch*5, inch*.5, showBoundary=debug))
-	#frames.append(Frame(inch*1.75, inch*1, inch*1.5, inch*2.5, showBoundary=debug))
-	#frames.append(Frame(inch*3.25, inch*1, inch*1, inch*2.5, showBoundary=debug))
-	#frames.append(Frame(inch*4.25, inch*1, inch*2.5, inch*2.5, showBoundary=debug))
+	frames.append(Frame(mbi(0.5), mbi(0.5), mbi(7.5), mbi(5), showBoundary=1))
+	frames.append(Frame(mbi(0.6), mbi(4.75), mbi(7.4), mbi(0.75), showBoundary=debug))
+	frames.append(Frame(mbi(0.6), mbi(0.5), mbi(2), mbi(4.25), showBoundary=debug))
+	frames.append(Frame(mbi(2.6), mbi(0.5), mbi(1.65), mbi(4.25), showBoundary=debug))
+	frames.append(Frame(mbi(4.25), mbi(0.75), mbi(3.65), mbi(4), showBoundary=debug))
+	frames.append(Frame(mbi(4.25), mbi(0.5), mbi(3.65), mbi(0.25), bottomPadding=0, topPadding=0, showBoundary=debug))
 	
 	return frames
 
 def addContent(recipes):
+	pdfmetrics.registerFont(TTFont('Consolas','Consolas.ttf'))
+	
+	avenir_path = "/System/Library/Fonts/Avenir.ttc"
+	pdfmetrics.registerFont(TTFont("Avenir-Book", avenir_path, subfontIndex=0))
+	pdfmetrics.registerFont(TTFont("Avenir-BookOblique", avenir_path, subfontIndex=7))
+	pdfmetrics.registerFontFamily("Avenir", normal="Avenir-Book", italic="Avenir-BookOblique")
+	
+	
+	avenirNext_path = "/System/Library/Fonts/Avenir Next.ttc"
+	#pdfmetrics.registerFont(TTFont("AvenirNext-Medium", avenirNext_path, subfontIndex=0))
+	#pdfmetrics.registerFont(TTFont("AvenirNext-Regular", avenirNext_path, subfontIndex=1))
+	#pdfmetrics.registerFont(TTFont("AvenirNext-UltraLight", avenirNext_path, subfontIndex=2))
+	pdfmetrics.registerFont(TTFont("AvenirNext-x", avenirNext_path, subfontIndex=2))
+	#pdfmetrics.registerFont(TTFont("AvenirNext-Bold", avenirNext_path, subfontIndex=7))
+	pdfmetrics.registerFontFamily("AvenirNext")
+	
 	styles = getSampleStyleSheet()
-	styles.add(ParagraphStyle(name='Ingredients', fontName='Courier', fontSize=12, leading=14))
-	styles.add(ParagraphStyle(name='Directions', fontName='Helvetica', spaceafter=10, fontSize=13, leading=15))
-	#print(styles)
+	styles.add(ParagraphStyle(name='Ingredients', fontName='Consolas', fontSize=12, leading=14))
+	styles.add(ParagraphStyle(name='Directions', fontName='Avenir-Book', spaceafter=10, fontSize=13, leading=15))
+	styles.add(ParagraphStyle(name='DirectionsSmall', fontName='Avenir-Book', spaceafter=10, fontSize=11, leading=13))
+	styles.add(ParagraphStyle(name='Adapted', fontName='Avenir-BookOblique', fontSize=9, leading=9, alignment=2))
+	styles.add(ParagraphStyle(name='RecipeTitle', fontName='AvenirNext-x', fontSize=28))
+	
 	styleDirections = styles['Directions']
-	styleH = styles['Heading1']
+	styleDirectionsSmall = styles['DirectionsSmall']
+	styleH = styles['RecipeTitle']
+	styleAdapted = styles['Adapted']
 	styleIngredients = styles['Ingredients']
 	
 	
 	contentList = []
 	for recipe in recipes:
 		print("Processing: " + recipe['title'])
+		contentList.append(FrameBreak())
+		
 		#Title
 		contentList.append(Paragraph(recipe['title'], styleH))
 		contentList.append(FrameBreak())
@@ -54,7 +77,7 @@ def addContent(recipes):
 			if ingredient == ' ':
 				groupEnd = True
 				continue
-			
+			print(ingredient['thing'])
 			output = ingredient['thing']
 			if groupEnd == True:
 				output = '<para spacebefore=10>' + output + '</para>'
@@ -81,7 +104,14 @@ def addContent(recipes):
 		#Directions
 		for line in recipe['directions']:
 			output = line
-			contentList.append(Paragraph('<para spaceafter=10>' + output + '</para>', styleDirections))
+			styleToUse = styleDirections
+			if recipe['title'] == 'Lentil Walnut Loaf':
+				styleToUse = styleDirectionsSmall
+			contentList.append(Paragraph('<para spaceafter=10>' + output + '</para>', styleToUse))
+		contentList.append(FrameBreak())
+		
+		#Adapted
+		#contentList.append(Paragraph('', styleAdapted))
 		contentList.append(FrameBreak())
 
 	return contentList
