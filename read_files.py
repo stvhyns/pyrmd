@@ -90,8 +90,8 @@ def readInFile(filename):
 def parseIngredient(ingredient):
 	"""Takes in a ingredient/unit string, returns them as a list"""
 	ret = {}
-	tre = re.compile(r"([0-9, A-Za-z]*[0-9A-Za-z]) *[\(\[]") #match the thing
-	ure = re.compile(r"\[([0-9 ./A-Za-z]*)\]") #match the customary (U.S.) unit
+	tre = re.compile(r"([\w, -]*\w) *[\(\[]") #match the thing
+	ure = re.compile(r"\[([0-9 ./A-Za-z\(\),]*)\]") #match the customary (U.S.) unit
 	mre = re.compile(r"\(([0-9 ./A-Za-z]*)\)")   #match the metric unit
 	
 	# add the thing to ret

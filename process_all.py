@@ -3,7 +3,7 @@ from genpdf_half_page import genPdf
 import os
 
 if __name__ == "__main__":
-	recipes_root = '/Users/shaynes/Documents/Dropbox/Recipes/prd'
+	recipes_root = '/Users/shaynes/Stuff/Projects/Recipes/2-Ready-To-Print/'
 	recipes = []
 	for root, dirs, files in os.walk(recipes_root):
 		for name in files:

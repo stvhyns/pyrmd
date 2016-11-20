@@ -50,6 +50,7 @@ def addContent(recipes):
 	
 	styles = getSampleStyleSheet()
 	styles.add(ParagraphStyle(name='Ingredients', fontName='Consolas', fontSize=12, leading=14))
+	styles.add(ParagraphStyle(name='IngredientsSmall', fontName='Consolas', fontSize=11, leading=14))
 	styles.add(ParagraphStyle(name='Directions', fontName='Avenir-Book', spaceafter=10, fontSize=13, leading=15))
 	styles.add(ParagraphStyle(name='DirectionsSmall', fontName='Avenir-Book', spaceafter=10, fontSize=11, leading=13))
 	styles.add(ParagraphStyle(name='Adapted', fontName='Avenir-BookOblique', fontSize=9, leading=9, alignment=2))
@@ -60,6 +61,7 @@ def addContent(recipes):
 	styleH = styles['RecipeTitle']
 	styleAdapted = styles['Adapted']
 	styleIngredients = styles['Ingredients']
+	styleIngredientsSmall = styles['IngredientsSmall']
 	
 	
 	contentList = []
@@ -79,10 +81,13 @@ def addContent(recipes):
 				continue
 			print(ingredient['thing'])
 			output = ingredient['thing']
+			styleToUse = styleIngredients
+			if recipe['title'] == 'White Bean & Red Lentil Burgers':
+				styleToUse = styleIngredientsSmall
 			if groupEnd == True:
 				output = '<para spacebefore=10>' + output + '</para>'
 				groupEnd = False
-			contentList.append(Paragraph(output, styleIngredients))
+			contentList.append(Paragraph(output, styleToUse))
 		contentList.append(FrameBreak())
 		
 		#Units
@@ -90,15 +95,16 @@ def addContent(recipes):
 			if ingredient == ' ':
 				groupEnd = True
 				continue
-			if recipe['title'] == 'Cranberry Scones':
-				print(ingredient)
 			output = ingredient['m-unit']
 			if output == '':
 				output = ingredient['u-unit']
 			if groupEnd == True:
 				output = '<para spacebefore=10>' + output + '</para>'
 				groupEnd = False
-			contentList.append(Paragraph(output, styleIngredients))
+			styleToUse = styleIngredients
+			if recipe['title'] == 'White Bean & Red Lentil Burgers':
+				styleToUse = styleIngredientsSmall
+			contentList.append(Paragraph(output, styleToUse))
 		contentList.append(FrameBreak())
 		
 		#Directions
